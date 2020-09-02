@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# version: 20200902
+# https://github.com/ethbian/iptables4ethereum2
+#
+
 ############################# variables ###########################
 # iptables path
 IPT='/usr/sbin/iptables'

@@ -1,5 +1,5 @@
-# iptables4ethereum2
-Firewall rules for ethereum 2.0
+# iptables4ethereum2: router + eth2 node
+Firewall(iptables) rules for ethereum 2.0 staking
 
 ## network topology
 ```
@@ -24,7 +24,6 @@ Just update your /etc/rsyslogd.conf file with
 and restart rsyslog to see what's going on.
 
 I'm not using SYNPROXY iptables module only because it's not  
-provided with Raspbian 64-bit kernel by default.
-
-## last but not least
-...pull requests are more than welcome 
+provided with Raspbian's default 64-bit kernel.
+  
+Default policies: input: DROP, forward: DROP, output: ACCEPT

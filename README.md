@@ -1,10 +1,10 @@
 # iptables4ethereum2
-Firewall rules for ethereum 2.0
+Firewall rules for ethereum 2.0 staking 
 
 ## introduction
-I'm playing with ethereum 2.0 staking software.  
-These are firewall (iptables) rules that I found working well with it.  
-They are uploaded if my eth node runs smoothly (validating and proposing blocks) 
+I've been playing with ethereum 2.0 staking software for a while and  
+these are firewall(iptables) rules that I found working well with it.  
+They were uploaded after my eth node ran smoothly (validating and proposing blocks)  
 for a couple of days without probems.  
 
 ## hardware & software
