@@ -25,5 +25,7 @@ and restart rsyslog to see what's going on.
 
 I'm not using SYNPROXY iptables module only because it's not  
 provided with Raspbian's default 64-bit kernel.
+
+IPv6 is disabled (using sysctl).
   
 Default policies: input: DROP, forward: DROP, output: ACCEPT
