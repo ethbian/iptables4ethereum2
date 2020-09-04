@@ -7,8 +7,8 @@ internet ------ router ------ eth2node
 ```
 
 Ports being forwarded on router:  
-- 30303 tcp (geth)  
-- 9000 tcp (lighthouse) or 13000 tcp (prysm)  
+- 30303 tcp/udp (geth)  
+- 9000 tcp/udp (lighthouse) or 13000 tcp/12000 udp (prysm)  
 
 ## linux
 The script can be executed on any linux distro with iptables.  

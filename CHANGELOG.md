@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2020-09-04
+
+router+eth2node:
+- [added] UDP rules
+- [added] LOG_DROP_INVALID, LOG_DROP_FRAGMENTED chains
+
 ## 2020-09-03
 
 router+eth2node:
