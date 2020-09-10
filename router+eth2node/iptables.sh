@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #
-# version: 20200904
+# router+eth2node, version: 20200910
 # https://github.com/ethbian/iptables4ethereum2
 #
 
@@ -33,6 +33,18 @@ BEACON_TOTAL=50
 SSH_TCP_PORT=22
 # ssh per IP limit
 SSH_PER_IP=3
+
+# portscan traps (unused tcp services, should be forwarded by router)
+# 1: ftp
+PSCAN_TRAP1=21
+# 2: telnet
+PSCAN_TRAP2=23
+# 3: samba
+PSCAN_TRAP3=139
+# portscan when 2 connections for the last 24 hours (86400 seconds)
+PSCAN_COUNT=2
+PSCAN_SECONDS=86400
+
 ###################################################################
 
 if [ "$EUID" -ne 0 ]; then
@@ -89,6 +101,10 @@ $IPT -t mangle -A PREROUTING -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j LOG_D
 $IPT -t mangle -A PREROUTING -p tcp ! --syn -m state --state NEW -j LOG_DROP_BOGUS
 $IPT -t mangle -A PREROUTING -f -j LOG_DROP_FRAGMENTED
 $IPT -t mangle -A PREROUTING -m conntrack --ctstate INVALID -j LOG_DROP_INVALID
+
+# portscan
+$IPT -A INPUT -p tcp -m recent --name portscan --rcheck --seconds $PSCAN_SECONDS --hitcount $PSCAN_COUNT -j DROP
+$IPT -A INPUT -p tcp -m multiport --dport $PSCAN_TRAP1,$PSCAN_TRAP2,$PSCAN_TRAP3 -m recent --name portscan --set -j REJECT
 
 # loopback & already established are fine
 $IPT -A INPUT -i lo -j ACCEPT
