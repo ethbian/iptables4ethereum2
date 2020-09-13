@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2020-09-13
+
+- initial release: vps+vpn+eth2node
+
+## 2020-09-10
+
+router+eth2node:
+- [added] portscan detection
+
 ## 2020-09-04
 
 router+eth2node:

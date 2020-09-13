@@ -18,9 +18,13 @@ iptables rules are provided per network configuration:
 |directory|description|
 |---------|-----------|
 |router + eth2node |eth node is connected directly to router (with port forwarding)|
+|vps + vpn + eth2node |eth node is connected to vps via vpn (with port forwarding)|
 
 ## todo
-vpn + eth2node configuration
+- [x] iptables: router + eth2node
+- [x] iptables: vps + vpn + eth2node
+- [ ] nftables: router + eth2node
+- [ ] nftables: vps + vpn + eth2node
 
 ## last but not least
 ...pull requests are more than welcome 
