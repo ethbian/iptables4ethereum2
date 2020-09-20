@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2020-09-20
+
+- initial release: nftables_router+eth2node
+
 ## 2020-09-13
 
 - initial release: vps+vpn+eth2node

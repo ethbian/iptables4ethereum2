@@ -1,0 +1,104 @@
+#!/usr/sbin/nft -f
+
+# clear the rules
+flush ruleset
+
+table ip filter {
+
+	# geth ports
+        define GETH_TCP_PORT = 30303
+        define GETH_UDP_PORT = 30303
+	# beacon ports, 9000 for lighthouse, 13000tcp/12000udp for prysm
+        define BEACON_TCP_PORT = 9000
+        define BEACON_UDP_PORT = 9000
+	# ssh port
+        define SSH_TCP_PORT = 22
+	# portscan traps (unused tcp services, should be forwarded by router)
+	# 1: ftp
+        define PSCAN_TRAP1 = 21
+	# 2: telnet
+        define PSCAN_TRAP2 = 23
+        
+        # note: I couldn't find a way to pass connection limits ("meters" below)
+        # on my nftables version so they are passed directly
+
+	# portscan helper (after hitting PSCAN_TRAP1)
+        set candidates2drop {
+                type ipv4_addr . inet_service
+                flags timeout
+        }
+
+	# portscans detected - list of blocked IPs
+        set badguys2drop {
+                type ipv4_addr
+                flags timeout
+        }
+
+	# counters
+        counter new_not_syn {}
+        counter fragmented {}
+        counter invalid {}
+        counter portscan {}
+        counter geth_tcp_ip_flood {}
+        counter geth_tcp_flood {}
+        counter geth_udp_ip_flood {}
+        counter geth_udp_flood {}
+        counter beacon_tcp_ip_flood {}
+        counter beacon_tcp_flood {}
+        counter beacon_udp_ip_flood {}
+        counter beacon_udp_flood {}
+
+        chain INPUT {
+		# drop input by default
+                type filter hook input priority 0; policy drop;
+
+		# loopback & already established are fine
+                iifname "lo" accept
+                ct state { related, established } accept
+
+		# invalid, fragmented, new without syn - shouldn't exist
+                tcp flags != syn ct state new log prefix " new without syn: " level debug counter name "new_not_syn" drop
+                ip frag-off & 0x1fff != 0 log prefix " fragmented: " level debug counter name "fragmented" drop
+                ct state invalid log prefix " invalid packet: " level debug counter name "invalid" drop
+
+                # portscan - connections to two old, unused services within 10 seconds
+                ip saddr @badguys2drop drop
+                tcp dport $PSCAN_TRAP1 add @candidates2drop { ip  saddr . $PSCAN_TRAP2 timeout 10s } log prefix "possible portscan: " level debug reject with tcp reset
+                tcp dport $PSCAN_TRAP2 ip saddr . tcp dport @candidates2drop add @badguys2drop { ip saddr timeout 86400s } log prefix "portscan confirmed: " level debug counter name "portscan" reject with tcp reset
+
+                # allowing ssh (LAN access, not forwared on router; use random port number, fail2ban, vpn...)
+                tcp dport $SSH_TCP_PORT meter ssh-all { ip saddr & 0.0.0.0 ct count over 10 } reject with tcp reset
+                tcp dport $SSH_TCP_PORT meter ssh-single { ip saddr ct count over 3 } reject with tcp reset
+                tcp dport $SSH_TCP_PORT accept
+
+                # allowing & limiting (per IP and total) geth
+                tcp dport $GETH_TCP_PORT meter geth-tcp-all { ip saddr & 0.0.0.0 ct count over 75 } counter name "geth_tcp_flood" reject with tcp reset
+                tcp dport $GETH_TCP_PORT meter geth-tcp-single { ip saddr ct count over 3 } counter name "geth_tcp_ip_flood" drop
+                tcp dport $GETH_TCP_PORT accept
+                udp dport $GETH_UDP_PORT meter geth-udp-all { ip saddr & 0.0.0.0 ct count over 75 } counter name "geth_udp_flood" reject
+                udp dport $GETH_UDP_PORT meter geth-udp-single { ip saddr ct count over 3 } counter name "geth_udp_ip_flood" drop
+                udp dport $GETH_UDP_PORT accept
+
+                # allowing & limiting (per IP and total) beacon (lighthouse, prysm and so on)
+                tcp dport $BEACON_TCP_PORT meter beacon-tcp-all { ip saddr & 0.0.0.0 ct count over 50 } counter name "beacon_tcp_flood" reject with tcp reset
+                tcp dport $BEACON_TCP_PORT meter beacon-tcp-single { ip saddr ct count over 3 } counter name "beacon_tcp_ip_flood" drop
+                tcp dport $BEACON_TCP_PORT accept
+                udp dport $BEACON_UDP_PORT meter beacon-udp-all { ip saddr & 0.0.0.0 ct count over 50 } counter name "beacon_udp_flood" reject
+                udp dport $BEACON_UDP_PORT meter beacon-udp-single { ip saddr ct count over 3 } counter name "beacon_udp_ip_flood" drop
+                udp dport $BEACON_UDP_PORT accept
+
+		# optional: log & drop all the rest
+                # log prefix " final drop: " level debug drop
+        }
+
+        chain FORWARD {
+		# drop by default
+                type filter hook forward priority 0; policy drop;
+        }
+
+        chain OUTPUT {
+		# allow by default
+                type filter hook output priority 0; policy accept;
+        }
+}
+
