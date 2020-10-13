@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# vps+vpn+eth2node, version: 20200913
+# vps+vpn+eth2node, version: 20201013
 # https://github.com/ethbian/iptables4ethereum2
 #
 
