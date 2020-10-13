@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2020-10-13
+
+vps+vpn+eth2node:
+- [added] missing FORWARD rules
+- [changed] rules order
+
 ## 2020-09-20
 
 - initial release: nftables_router+eth2node

@@ -75,6 +75,17 @@ $IPT -P INPUT DROP
 $IPT -P FORWARD DROP
 $IPT -P OUTPUT ACCEPT
 
+# services running locally on the vps/vpn server
+$IPT -A INPUT -i lo -j ACCEPT
+$IPT -A INPUT -i $VPN_INT -j ACCEPT
+
+# nat / forwarding
+$IPT -t nat -A POSTROUTING -s $VPN_NET -o $EXT_INT -j MASQUERADE
+$IPT -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+$IPT -A FORWARD -i $VPN_INT -j ACCEPT
+$IPT -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+
 # LOG and DROP in one chain
 $IPT -t mangle -N LOG_DROP_BOGUS
 $IPT -t mangle -A LOG_DROP_BOGUS -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "iptables BOGUS " --log-level $LOG_LEVEL
@@ -118,39 +129,31 @@ $IPT -t nat -A PREROUTING -i $EXT_INT -p udp -m udp --dport $GETH_UDP_PORT -j DN
 $IPT -t nat -A PREROUTING -i $EXT_INT -p tcp -m tcp --dport $BEACON_TCP_PORT -j DNAT --to-destination $ETH_IP:$BEACON_TCP_PORT
 $IPT -t nat -A PREROUTING -i $EXT_INT -p udp -m udp --dport $BEACON_UDP_PORT -j DNAT --to-destination $ETH_IP:$BEACON_UDP_PORT
 
-# forwarding
-$IPT -A FORWARD -i $VPN_INT -j ACCEPT
-$IPT -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
-
 # allowing & limiting (per IP and total) geth
 $IPT -t mangle -A FORWARD -p tcp --syn --dport $GETH_TCP_PORT -m connlimit --connlimit-above $GETH_PER_IP -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "geth TCP IP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p tcp --syn --dport $GETH_TCP_PORT -m connlimit --connlimit-above $GETH_PER_IP -j DROP
 $IPT -t mangle -A FORWARD -p tcp --syn --dport $GETH_TCP_PORT -m connlimit --connlimit-above $GETH_TOTAL --connlimit-mask 0 -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "geth TCP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p tcp --syn --dport $GETH_TCP_PORT -m connlimit --connlimit-above $GETH_TOTAL --connlimit-mask 0 -j REJECT
+$IPT -A FORWARD -i $EXT_INT -p tcp --dport $GETH_TCP_PORT -j ACCEPT
 
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $GETH_UDP_PORT -m connlimit --connlimit-above $GETH_PER_IP -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "geth UDP IP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $GETH_UDP_PORT -m connlimit --connlimit-above $GETH_PER_IP -j DROP
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $GETH_UDP_PORT -m connlimit --connlimit-above $GETH_TOTAL --connlimit-mask 0 -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "geth UDP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $GETH_UDP_PORT -m connlimit --connlimit-above $GETH_TOTAL --connlimit-mask 0 -j REJECT
+$IPT -A FORWARD -i $EXT_INT -p tcp --dport $GETH_UDP_PORT -j ACCEPT
 
 # allowing & limiting (per IP and total) beacon (lighthouse, prysm and so on)
 $IPT -t mangle -A FORWARD -p tcp --syn --dport $BEACON_TCP_PORT -m connlimit --connlimit-above $BEACON_PER_IP -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "beacon TCP IP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p tcp --syn --dport $BEACON_TCP_PORT -m connlimit --connlimit-above $BEACON_PER_IP -j DROP
 $IPT -t mangle -A FORWARD -p tcp --syn --dport $BEACON_TCP_PORT -m connlimit --connlimit-above $BEACON_TOTAL --connlimit-mask 0 -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "beacon TCP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p tcp --syn --dport $BEACON_TCP_PORT -m connlimit --connlimit-above $BEACON_TOTAL --connlimit-mask 0 -j REJECT
+$IPT -A FORWARD -i $EXT_INT -p tcp --dport $BEACON_TCP_PORT -j ACCEPT
 
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $BEACON_UDP_PORT -m connlimit --connlimit-above $BEACON_PER_IP -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "beacon UDP IP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $BEACON_UDP_PORT -m connlimit --connlimit-above $BEACON_PER_IP -j DROP
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $BEACON_UDP_PORT -m connlimit --connlimit-above $BEACON_TOTAL --connlimit-mask 0 -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "beacon UDP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $BEACON_UDP_PORT -m connlimit --connlimit-above $BEACON_TOTAL --connlimit-mask 0 -j REJECT
-
-# nat / forwarding
-$IPT -t nat -A POSTROUTING -s $VPN_NET -o $EXT_INT -j MASQUERADE
-$IPT -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-# services running locally on the vps/vpn server
-$IPT -A INPUT -i lo -j ACCEPT
-$IPT -A INPUT -i $VPN_INT -j ACCEPT
+$IPT -A FORWARD -i $EXT_INT -p tcp --dport $BEACON_UDP_PORT -j ACCEPT
 
 # extra services you're running on the server (vps)
 # ssh, change the defult port

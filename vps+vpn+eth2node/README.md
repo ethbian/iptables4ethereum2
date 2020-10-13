@@ -51,3 +51,8 @@ Portscan traps:
 ```
 cat /proc/net/xt_recent/portscan
 ```
+
+Show natted connections (being forwared and so on), netstat-nat needs to be installed:
+```
+netstat-nat -n
+```
