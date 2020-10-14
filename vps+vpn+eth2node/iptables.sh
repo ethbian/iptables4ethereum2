@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# vps+vpn+eth2node, version: 20201013
+# vps+vpn+eth2node, version: 20201014
 # https://github.com/ethbian/iptables4ethereum2
 #
 
@@ -140,7 +140,7 @@ $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $GETH_UDP_PORT -m 
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $GETH_UDP_PORT -m connlimit --connlimit-above $GETH_PER_IP -j DROP
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $GETH_UDP_PORT -m connlimit --connlimit-above $GETH_TOTAL --connlimit-mask 0 -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "geth UDP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $GETH_UDP_PORT -m connlimit --connlimit-above $GETH_TOTAL --connlimit-mask 0 -j REJECT
-$IPT -A FORWARD -i $EXT_INT -p tcp --dport $GETH_UDP_PORT -j ACCEPT
+$IPT -A FORWARD -i $EXT_INT -p udp --dport $GETH_UDP_PORT -j ACCEPT
 
 # allowing & limiting (per IP and total) beacon (lighthouse, prysm and so on)
 $IPT -t mangle -A FORWARD -p tcp --syn --dport $BEACON_TCP_PORT -m connlimit --connlimit-above $BEACON_PER_IP -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "beacon TCP IP flood " --log-level $LOG_LEVEL
@@ -153,7 +153,7 @@ $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $BEACON_UDP_PORT -
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $BEACON_UDP_PORT -m connlimit --connlimit-above $BEACON_PER_IP -j DROP
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $BEACON_UDP_PORT -m connlimit --connlimit-above $BEACON_TOTAL --connlimit-mask 0 -m limit --limit $LOG_RATE_LIMIT/second -j LOG --log-prefix "beacon UDP flood " --log-level $LOG_LEVEL
 $IPT -t mangle -A FORWARD -p udp -m state --state NEW --dport $BEACON_UDP_PORT -m connlimit --connlimit-above $BEACON_TOTAL --connlimit-mask 0 -j REJECT
-$IPT -A FORWARD -i $EXT_INT -p tcp --dport $BEACON_UDP_PORT -j ACCEPT
+$IPT -A FORWARD -i $EXT_INT -p udp --dport $BEACON_UDP_PORT -j ACCEPT
 
 # extra services you're running on the server (vps)
 # ssh, change the defult port

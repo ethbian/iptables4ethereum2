@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2020-10-14
+
+vps+vpn+eth2node:
+- [changed] fixed udp FORWARD rules
+
 ## 2020-10-13
 
 vps+vpn+eth2node:
