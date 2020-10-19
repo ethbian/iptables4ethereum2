@@ -6,7 +6,10 @@ All notable changes to this project will be documented in this file.
 
 vps+vpn+eth2node:
 - [added] external interface for limiting rules
-- [changed] DROP instead of REJECT when limiting connections
+- [changed] DROP instead of REJECT when limiting connections  
+  
+nftables_router+eth2node:
+- [changed] SYN not NEW fixed
 
 ## 2020-10-14
 

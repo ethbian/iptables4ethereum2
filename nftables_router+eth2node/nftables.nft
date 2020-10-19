@@ -57,7 +57,7 @@ table ip filter {
                 ct state { related, established } accept
 
 		# invalid, fragmented, new without syn - shouldn't exist
-                tcp flags != syn ct state new log prefix " new without syn: " level debug counter name "new_not_syn" drop
+                tcp flags & (fin|syn|rst|ack) != syn ct state new log prefix " new without syn: " level debug counter name "new_not_syn" drop
                 ip frag-off & 0x1fff != 0 log prefix " fragmented: " level debug counter name "fragmented" drop
                 ct state invalid log prefix " invalid packet: " level debug counter name "invalid" drop
 
