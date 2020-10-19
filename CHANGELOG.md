@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2020-10-19
+
+vps+vpn+eth2node:
+- [added] external interface for limiting rules
+- [changed] DROP instead of REJECT when limiting connections
+
 ## 2020-10-14
 
 vps+vpn+eth2node:
